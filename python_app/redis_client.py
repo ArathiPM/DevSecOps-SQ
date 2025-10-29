@@ -22,7 +22,7 @@
 #         return None  # Return None to avoid test crash
 
 import redis
-from redis_client import get_redis_client
+import redis_client
 
 def test_get_redis_client_success(monkeypatch):
     # Mock redis.Redis so we don't need a running server
