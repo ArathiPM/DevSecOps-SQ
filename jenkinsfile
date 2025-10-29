@@ -38,7 +38,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv(credentialsId: 'arathi-sonar-token', installationName: 'arathi-sonarqube') {
+                withSonarQubeEnv(credentialsId: 'arathi-sonar-token', installationName: 'arathi-sq') {
                     sh '''#!/bin/bash
                         set -eux
                         echo "=== SonarQube installation ==="
