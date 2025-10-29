@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'arathi-security-agent'
+        label 'arathi-ubuntu-a'
     }
     triggers {
         pollSCM('H/3 * * * *') // checks every 3 mins, or
