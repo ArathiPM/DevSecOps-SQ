@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'vish-security-agent'
+        label 'arathi-security-agent'
     }
     triggers {
         pollSCM('H/3 * * * *') // checks every 3 mins, or
@@ -8,10 +8,10 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_USER = 'vishwacloudlab'
+        DOCKERHUB_USER = 'arathi'
         IMAGE_NAME = 'jenkins-docker-lab'
         SONARQUBE = 'SonarCloud'
-        SONAR_TOKEN = credentials('vish-sonarcloud-token')
+        SONAR_TOKEN = credentials('arathi-sonar-token')
 
     }
     stages {
@@ -38,7 +38,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv(credentialsId: 'vish-sonarcloud-token', installationName: 'vish-sonarqube') {
+                withSonarQubeEnv(credentialsId: 'arathi-sonar-token', installationName: 'arathi-sonarqube') {
                     sh '''#!/bin/bash
                         set -eux
                         echo "=== SonarQube installation ==="
@@ -50,8 +50,8 @@ pipeline {
 
                         echo "=== Running SonarQube Scanner ==="
                         sonar-scanner \
-                        -Dsonar.organization="vcltestorg01" \
-                        -Dsonar.projectKey="vcltestorg01_vcltestorg01" \
+                        -Dsonar.organization=arathipm \
+                        -Dsonar.projectKey=ArathiPM_DevSecOps-SQ \
                         -Dsonar.host.url=https://sonarcloud.io \
                         -Dsonar.sources=. \
                         -Dsonar.python.coverage.reportPaths=coverage.xml \
