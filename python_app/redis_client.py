@@ -22,6 +22,17 @@
 #         return None  # Return None to avoid test crash
 
 import redis
+from redis_client import get_redis_client
+
+def test_get_redis_client_success(monkeypatch):
+    # Mock redis.Redis so we don't need a running server
+    class DummyRedis:
+        def ping(self): return True
+    monkeypatch.setattr("redis.Redis", lambda *a, **kw: DummyRedis())
+
+    client = get_redis_client()
+    assert client is not None          # ensures return line is executed
+    assert hasattr(client, "ping")
 
 def get_redis_client():
     redis_host = "localhost"

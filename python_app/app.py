@@ -70,7 +70,14 @@ from flask import Flask, jsonify
 from redis_client import get_redis_client
 import logging
 
+import app_module   # whatever this file is named
 
+def test_main(monkeypatch):
+    # prevent Flask.run() from trying to start a real server
+    monkeypatch.setattr(app_module.app, "run", lambda **kw: None)
+    if __name__ == "__main__":
+        # simulate executing the file directly
+        app_module.app.run(host="0.0.0.0", port=5000)
 
 app = Flask(__name__)
 redis_client = get_redis_client()
@@ -100,6 +107,10 @@ def get_counter():
         value = int(value)
     return jsonify({"counter": value})
 
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+n)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
