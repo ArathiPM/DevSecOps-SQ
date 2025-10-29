@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+*.coverage
+coverage.xml
+
+# Virtualenvs & local tooling
+venv/
+.env
+
+# VCS / IDE
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Tests (not needed in runtime image)
+python-app/tests/

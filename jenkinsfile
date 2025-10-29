@@ -1,0 +1,78 @@
+pipeline {
+    agent {
+        label 'vish-security-agent'
+    }
+    triggers {
+        pollSCM('H/3 * * * *') // checks every 3 mins, or
+        // OR use GitHub webhook instead (recommended)
+    }
+
+    environment {
+        DOCKERHUB_USER = 'vishwacloudlab'
+        IMAGE_NAME = 'jenkins-docker-lab'
+        SONARQUBE = 'SonarCloud'
+        SONAR_TOKEN = credentials('vish-sonarcloud-token')
+
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+        stage('Python Setup & Test with Coverage') {
+            steps {
+                dir('python_app') {
+                    sh '''#!/bin/bash
+                        set -euxo pipefail
+                        rm -rf venv
+                        python3 -m venv venv
+                        ./venv/bin/pip install --upgrade pip
+                        ./venv/bin/pip install -r requirements.txt
+                        ./venv/bin/python -m pytest tests/ --maxfail=1 --disable-warnings -q \
+                            --cov=. --cov-report=xml:../coverage.xml
+                    '''               
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv(credentialsId: 'vish-sonarcloud-token', installationName: 'vish-sonarqube') {
+                    sh '''#!/bin/bash
+                        set -eux
+                        echo "=== SonarQube installation ==="
+                        export SONAR_SCANNER_VERSION=7.2.0.5079
+                        export SONAR_SCANNER_HOME=$HOME/.sonar/sonar-scanner-$SONAR_SCANNER_VERSION-linux-x64
+                        curl --create-dirs -sSLo $HOME/.sonar/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION-linux-x64.zip
+                        unzip -o $HOME/.sonar/sonar-scanner.zip -d $HOME/.sonar/
+                        export PATH=$SONAR_SCANNER_HOME/bin:$PATH
+
+                        echo "=== Running SonarQube Scanner ==="
+                        sonar-scanner \
+                        -Dsonar.organization="vcltestorg01" \
+                        -Dsonar.projectKey="vcltestorg01_vcltestorg01" \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.sources=. \
+                        -Dsonar.python.coverage.reportPaths=coverage.xml \
+                        -Dsonar.c.file.suffixes=- \
+                        -Dsonar.cpp.file.suffixes=- \
+                        -Dsonar.objc.file.suffixes=- \
+                        -Dsonar.login=$SONAR_TOKEN \
+                        -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/tests/** \
+                        '''
+                }
+            }
+        }
+
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
