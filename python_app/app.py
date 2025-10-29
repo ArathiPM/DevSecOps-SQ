@@ -1,8 +1,17 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from redis_client import get_redis_client
+import subprocess  # ⚠️ Potentially dangerous use below
 
 app = Flask(__name__)
 redis_client = get_redis_client()
+
+# 🔥 Vulnerability 1: Command Injection
+@app.route('/ping')
+def ping():
+    ip = request.args.get("ip", "127.0.0.1")
+    # ⚠️ Dangerous: direct use of user input inside shell=True
+    output = subprocess.check_output(f"ping -c 1 {ip}", shell=True)
+    return jsonify({"output": output.decode()})
 
 # Missing Exception Handling
 @app.route('/danger')
@@ -43,6 +52,13 @@ def show_counter():
     else:
         value = int(value)
     return jsonify({"counter": value})
+
+# 🔥 Vulnerability 2: Hardcoded secret
+API_KEY = "supersecretapikey123"  # ❌ Hardcoded credential
+
+@app.route('/show-key')
+def show_key():
+    return jsonify({"api_key": API_KEY})
 
 # Unused Code
 def unused_function():
